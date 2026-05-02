@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Photographer Registration</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-logo">
+            <a href="home_page.html" class="nav-logo-link">
+                <img src="logo.png" alt="Logo" class="logo-img">
+                <span class="logo-text">BookMyLens</span>
+            </a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="create_package.html">Package Builder</a></li>
+            <li><a href="browse_packages.html">Browse Packages</a></li> 
+            <li><a href="chat.html">Messages</a></li>
+            <li id="nav-login"><a href="login.html">Login</a></li>
+            <li id="nav-username" style="display:none;"></li>
+            <li id="nav-logout" style="display:none;"><a href="#">Logout</a></li>
+            <li id="nav-signup-customer"><a href="customer_register.html">Customer Signup</a></li>
+            <li id="nav-signup-photographer"><a href="photographer_register.html">Photographer Signup</a></li>
+        </ul>
+    </nav>
+
+    <div class="signup-page">
+        <div class="signup-card">
+            <h1>Create Account</h1>
+            <p class="signup-subtitle">Join BookMyLens as a photographer</p>
+            
+            <form id="photographerForm">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" id="fname" placeholder="First Name" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" id="lname" placeholder="Last Name" required>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="address" placeholder="Address" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <div class="form-group">
+                    <label>Business Name</label>
+                    <input type="text" id="business" placeholder="Business Name" required>
+                </div>
+                <button type="submit" class="signup-btn">Register</button>
+            </form>
+
+            <p id="response"></p>
+            <p class="login-switch">Already have an account? <a href="login.html">Login</a></p>
+        </div>
+    </div>
+    <footer class="footer">
+        <p>©2026 BookMyLens. All rights reserved.</p>
+    </footer>
+
+    <script>
+    document.getElementById("photographerForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const data = {
+            fname: document.getElementById("fname").value,
+            lname: document.getElementById("lname").value,
+            address: document.getElementById("address").value,
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+            bussiness: document.getElementById("business").value
+        };
+
+        fetch('http://localhost:3000/photographer/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.text())
+        .then(msg => document.getElementById("response").textContent = msg)
+        .catch(err => console.error(err));
+    });
+    </script>
+    <script>
+        const loggedInEmail = localStorage.getItem("userEmail");
+        const loggedInType = localStorage.getItem("userType");
+        const loginLink = document.getElementById("nav-login");
+        const logoutBtn = document.getElementById("nav-logout");
+        const usernameDisplay = document.getElementById("nav-username");
+
+        if (loggedInEmail) {
+            loginLink.style.display = "none";
+            usernameDisplay.style.display = "contents";
+            logoutBtn.style.display = "inline";
+            usernameDisplay.textContent = `${loggedInEmail.split('@')[0]} (${loggedInType})`;
+            document.getElementById("nav-signup-customer").style.display = "none";
+            document.getElementById("nav-signup-photographer").style.display = "none";
+        }
+
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("userEmail");
+            localStorage.removeItem("userType");
+            window.location.href = "home_page.html";
+        });
+
+        // Highlight active nav link
+        document.querySelectorAll(".nav-links a").forEach(a => {
+            if (a.href === window.location.href) {
+                a.style.opacity = "1";
+                a.style.fontWeight = "700";
+            }
+        });
+    </script>
+</body>
+</html>

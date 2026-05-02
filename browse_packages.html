@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookMyLens - Browse Packages</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-logo">
+            <a href="home_page.html" class="nav-logo-link">
+                <img src="logo.png" alt="Logo" class="logo-img">
+                <span class="logo-text">BookMyLens</span>
+            </a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="create_package.html">Package Builder</a></li>
+            <li><a href="browse_packages.html">Browse Packages</a></li>
+            <li><a href="chat.html">Messages</a></li>
+            <li id="nav-login"><a href="login.html">Login</a></li>
+            <li id="nav-username" style="display:none;"></li>
+            <li id="nav-logout" style="display:none;"><a href="#">Logout</a></li>
+            <li id="nav-signup-customer"><a href="customer_register.html">Customer Signup</a></li>
+            <li id="nav-signup-photographer"><a href="photographer_register.html">Photographer Signup</a></li>
+        </ul>
+    </nav>
+
+    <div class="browse-page">
+        <div class="browse-header">
+            <h1>Browse Packages</h1>
+            <p class="browse-subtitle">Find a package and reach out to the creator</p>
+        </div>
+
+        <div class="browse-filters">
+            <div class="form-group">
+                <label>Category</label>
+                <select id="filterCategory">
+                    <option value="">All</option>
+                    <option>Portrait</option>
+                    <option>Lifestyle</option>
+                    <option>Fine Art</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Location</label>
+                <select id="filterLocation">
+                    <option value="">All</option>
+                    <option>Studio</option>
+                    <option>Outdoor</option>
+                    <option>Custom</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Event Templates Section -->
+        <div class="section-heading">
+            <h2>Event Package Templates</h2>
+            <p class="browse-subtitle">Save a template to your account and customise it</p>
+        </div>
+        <div id="eventTemplates" class="package-list"></div>
+
+        <!-- User Packages Section -->
+        <div class="section-heading" style="margin-top:40px;">
+            <h2>Community Packages</h2>
+            <p class="browse-subtitle">Packages posted by customers and photographers</p>
+        </div>
+        <div id="packageList" class="package-list"></div>
+    </div>
+
+    <footer class="footer">
+        <p>©2026 BookMyLens. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const loggedInEmail = localStorage.getItem("userEmail");
+        const loggedInType = localStorage.getItem("userType");
+        const loginLink = document.getElementById("nav-login");
+        const logoutBtn = document.getElementById("nav-logout");
+        const usernameDisplay = document.getElementById("nav-username");
+
+        if (loggedInEmail) {
+            loginLink.style.display = "none";
+            usernameDisplay.style.display = "contents";
+            logoutBtn.style.display = "inline";
+            usernameDisplay.textContent = `${loggedInEmail.split('@')[0]} (${loggedInType})`;
+            document.getElementById("nav-signup-customer").style.display = "none";
+            document.getElementById("nav-signup-photographer").style.display = "none";
+        }
+
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("userEmail");
+            localStorage.removeItem("userType");
+            window.location.href = "home_page.html";
+        });
+
+        document.querySelectorAll(".nav-links a").forEach(a => {
+            if (a.href === window.location.href) {
+                a.style.opacity = "1";
+                a.style.fontWeight = "700";
+            }
+        });
+
+        // ---- Event Templates ----
+        const eventTemplates = [
+            {
+                name: "Wedding Day",
+                category: "Lifestyle",
+                location: "Custom",
+                price: 800,
+                photos_included: 50,
+                people: 2,
+                description: "Full day wedding coverage including ceremony, reception, and portraits.",
+                image: "https://picsum.photos/300/200?random=10"
+            },
+            {
+                name: "Birthday Celebration",
+                category: "Lifestyle",
+                location: "Outdoor",
+                price: 250,
+                photos_included: 20,
+                people: 5,
+                description: "Fun and vibrant birthday shoot capturing all the special moments.",
+                image: "https://picsum.photos/300/200?random=11"
+            },
+            {
+                name: "Graduation Portrait",
+                category: "Portrait",
+                location: "Studio",
+                price: 180,
+                photos_included: 15,
+                people: 1,
+                description: "Professional graduation portraits to commemorate your achievement.",
+                image: "https://picsum.photos/300/200?random=12"
+            },
+            {
+                name: "Engagement Shoot",
+                category: "Lifestyle",
+                location: "Outdoor",
+                price: 350,
+                photos_included: 25,
+                people: 2,
+                description: "Romantic engagement session at your favourite outdoor location.",
+                image: "https://picsum.photos/300/200?random=13"
+            },
+            {
+                name: "Newborn Session",
+                category: "Portrait",
+                location: "Studio",
+                price: 300,
+                photos_included: 20,
+                people: 3,
+                description: "Gentle and beautiful newborn photography in a warm studio setting.",
+                image: "https://picsum.photos/300/200?random=14"
+            },
+            {
+                name: "Corporate Headshots",
+                category: "Portrait",
+                location: "Studio",
+                price: 200,
+                photos_included: 10,
+                people: 1,
+                description: "Clean professional headshots for LinkedIn, websites, and press kits.",
+                image: "https://picsum.photos/300/200?random=15"
+            },
+            {
+                name: "Family Reunion",
+                category: "Lifestyle",
+                location: "Outdoor",
+                price: 450,
+                photos_included: 30,
+                people: 10,
+                description: "Capture the whole family together at an outdoor reunion session.",
+                image: "https://picsum.photos/300/200?random=16"
+            },
+            {
+                name: "Quinceañera",
+                category: "Fine Art",
+                location: "Custom",
+                price: 600,
+                photos_included: 40,
+                people: 4,
+                description: "Elegant and colourful quinceañera photography for this milestone celebration.",
+                image: "https://picsum.photos/300/200?random=17"
+            }
+        ];
+
+        function renderTemplates() {
+            const container = document.getElementById("eventTemplates");
+            container.innerHTML = "";
+
+            eventTemplates.forEach((t, i) => {
+                const card = document.createElement("div");
+                card.className = "browse-card";
+                card.innerHTML = `
+                    <div class="browse-card-top">
+                        <div>
+                            <p class="browse-card-name">${t.name}</p>
+                            <p class="browse-card-meta">${t.category} &middot; ${t.location}</p>
+                        </div>
+                        <p class="browse-card-price">$${t.price}</p>
+                    </div>
+                    <p class="browse-card-desc">${t.description}</p>
+                    <div class="browse-card-bottom">
+                        <div class="browse-card-creator">
+                            <span class="creator-label">Event Template</span>
+                        </div>
+                        <div class="browse-card-details">
+                            <span>${t.photos_included} photos</span>
+                            <span>${t.people} ${t.people === 1 ? "person" : "people"}</span>
+                        </div>
+                        <div class="browse-card-actions">
+                            <button class="save-template-btn" data-index="${i}">Save as My Package</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.querySelectorAll(".save-template-btn").forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    if (!loggedInEmail) {
+                        localStorage.setItem("redirect", "browse_packages.html");
+                        window.location.href = "login.html";
+                        return;
+                    }
+
+                    const t = eventTemplates[btn.dataset.index];
+
+                    const res = await fetch("http://localhost:3000/package/create", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: loggedInEmail,
+                            creator_type: loggedInType,
+                            name: t.name,
+                            category: t.category,
+                            price: t.price,
+                            photos_included: t.photos_included,
+                            location: t.location,
+                            description: t.description,
+                            people: t.people,
+                            addons: []
+                        })
+                    });
+
+                    const msg = await res.text();
+                    alert(msg + " Find it in your Package Builder to customise.");
+                });
+            });
+        }
+
+        renderTemplates();
+
+        // ---- Community Packages ----
+        async function loadPackages() {
+            const category = document.getElementById("filterCategory").value;
+            const location = document.getElementById("filterLocation").value;
+
+            const res = await fetch("http://localhost:3000/packages/browse");
+            let packages = await res.json();
+
+            if (category) packages = packages.filter(p => p.category === category);
+            if (location) packages = packages.filter(p => p.location === location);
+
+            const list = document.getElementById("packageList");
+            list.innerHTML = "";
+
+            if (packages.length === 0) {
+                list.innerHTML = `<p class="no-packages">No packages found.</p>`;
+                return;
+            }
+
+            packages.forEach(p => {
+                const isOwner = loggedInEmail === p.customer_email;
+                const card = document.createElement("div");
+                card.className = "browse-card";
+                card.innerHTML = `
+                    <div class="browse-card-top">
+                        <div>
+                            <p class="browse-card-name">${escapeHtml(p.name)}</p>
+                            <p class="browse-card-meta">${escapeHtml(p.category)} &middot; ${escapeHtml(p.location)}</p>
+                        </div>
+                        <p class="browse-card-price">$${p.price}</p>
+                    </div>
+                    <p class="browse-card-desc">${escapeHtml(p.description)}</p>
+                    <div class="browse-card-bottom">
+                        <div class="browse-card-creator">
+                            <span class="creator-label">Posted by</span>
+                            <span class="creator-name">${escapeHtml(p.creator_fname)} ${escapeHtml(p.creator_lname)}</span>
+                            <span class="conversation-type">${escapeHtml(p.creator_type)}</span>
+                        </div>
+                        <div class="browse-card-details">
+                            <span>${p.photos_included} photos</span>
+                            <span>${p.people} ${p.people === 1 ? "person" : "people"}</span>
+                        </div>
+                        <div class="browse-card-actions">
+                            ${!isOwner ? `
+                                <button class="message-btn" data-email="${escapeHtml(p.customer_email)}" data-type="${escapeHtml(p.creator_type)}" data-package-id="${p.package_id}">
+                                    Message Creator
+                                </button>
+                                <button class="save-copy-btn" data-package-id="${p.package_id}">
+                                    Save as My Package
+                                </button>
+                            ` : `<span class="your-package-tag">Your Package</span>`}
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            document.querySelectorAll(".message-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    if (!loggedInEmail) {
+                        localStorage.setItem("redirect", "chat.html");
+                        window.location.href = "login.html";
+                        return;
+                    }
+                    const url = `chat.html?receiverEmail=${encodeURIComponent(btn.dataset.email)}&receiverType=${encodeURIComponent(btn.dataset.type)}&packageId=${btn.dataset.packageId}`;
+                    window.location.href = url;
+                });
+            });
+
+            document.querySelectorAll(".save-copy-btn").forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    if (!loggedInEmail) {
+                        localStorage.setItem("redirect", "browse_packages.html");
+                        window.location.href = "login.html";
+                        return;
+                    }
+                    const res = await fetch("http://localhost:3000/package/save-copy", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: loggedInEmail,
+                            creator_type: loggedInType,
+                            package_id: btn.dataset.packageId
+                        })
+                    });
+                    const msg = await res.text();
+                    alert(msg);
+                });
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+        }
+
+        document.getElementById("filterCategory").addEventListener("change", loadPackages);
+        document.getElementById("filterLocation").addEventListener("change", loadPackages);
+
+        loadPackages();
+    </script>
+</body>
+</html>

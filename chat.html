@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Messaging</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-logo">
+            <a href="home_page.html" class="nav-logo-link">
+                <img src="logo.png" alt="Logo" class="logo-img">
+                <span class="logo-text">BookMyLens</span>
+            </a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="create_package.html">Package Builder</a></li>
+            <li><a href="browse_packages.html">Browse Packages</a></li>
+            <li><a href="chat.html">Messages</a></li>
+            <li id="nav-login"><a href="login.html">Login</a></li>
+            <li id="nav-username" style="display:none;"></li>
+            <li id="nav-logout" style="display:none;"><a href="#">Logout</a></li>
+            <li id="nav-signup-customer"><a href="customer_register.html">Customer Signup</a></li>
+            <li id="nav-signup-photographer"><a href="photographer_register.html">Photographer Signup</a></li>
+        </ul>
+    </nav>
+
+    <div class="chat-page">
+        <div class="chat-layout">
+
+            <div class="conversations-panel">
+                <h2 class="conversations-title">Conversations</h2>
+                <div id="conversationsList" class="conversations-list"></div>
+            </div>
+
+            <div class="chat-card">
+                <div class="chat-header">
+                    <h1 id="chatTitle">Messages</h1>
+                    <p id="welcome" class="chat-welcome"></p>
+                </div>
+                <div class="chat-body">
+                    <div class="chat-controls">
+                        <div class="form-group">
+                            <label>Chat with</label>
+                            <select id="receiverType">
+                                <option value="customer">Customer</option>
+                                <option value="photographer">Photographer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Receiver Email</label>
+                            <input type="email" id="receiverEmail" placeholder="Enter their email">
+                        </div>
+                    </div>
+
+                    <div id="linkedPackageBar" class="linked-package-bar" style="display:none;">
+                        <div id="linkedPackageInfo"></div>
+                        <button id="proposeBtn" class="propose-btn">Propose Changes</button>
+                    </div>
+
+                    <div id="proposalForm" class="proposal-form" style="display:none;">
+                        <h3>Propose Changes</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>New Price ($) <span class="optional">optional</span></label>
+                                <input type="number" id="proposePrice" placeholder="Leave blank to keep current">
+                            </div>
+                            <div class="form-group">
+                                <label>New Photo Count <span class="optional">optional</span></label>
+                                <input type="number" id="proposePhotos" placeholder="Leave blank to keep current">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Reschedule Date <span class="optional">optional</span></label>
+                                <input type="date" id="proposeDate">
+                            </div>
+                        </div>
+                        <div class="proposal-form-actions">
+                            <button id="sendProposalBtn" class="send-btn">Send Proposal</button>
+                            <button id="cancelProposalFormBtn" class="cancel-btn">Cancel</button>
+                        </div>
+                    </div>
+
+                    <div id="chat" class="chat-messages"></div>
+
+                    <div class="chat-input-area">
+                        <textarea id="messageInput" placeholder="Type your message..."></textarea>
+                        <button id="sendBtn" class="send-btn">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>©2026 BookMyLens. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const sender_email = localStorage.getItem("userEmail");
+        const sender_type = localStorage.getItem("userType");
+
+        if (!sender_email) {
+            localStorage.setItem("redirect", window.location.href);
+            window.location.href = "login.html";
+        }
+
+        const loggedInEmail = localStorage.getItem("userEmail");
+        const loggedInType = localStorage.getItem("userType");
+        const loginLink = document.getElementById("nav-login");
+        const logoutBtn = document.getElementById("nav-logout");
+        const usernameDisplay = document.getElementById("nav-username");
+
+        if (loggedInEmail) {
+            loginLink.style.display = "none";
+            usernameDisplay.style.display = "contents";
+            logoutBtn.style.display = "inline";
+            usernameDisplay.textContent = `${loggedInEmail.split('@')[0]} (${loggedInType})`;
+            document.getElementById("nav-signup-customer").style.display = "none";
+            document.getElementById("nav-signup-photographer").style.display = "none";
+        }
+
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("userEmail");
+            localStorage.removeItem("userType");
+            window.location.href = "home_page.html";
+        });
+
+        document.querySelectorAll(".nav-links a").forEach(a => {
+            if (a.href === window.location.href) {
+                a.style.opacity = "1";
+                a.style.fontWeight = "700";
+            }
+        });
+
+        document.getElementById("welcome").textContent = `Logged in as ${sender_type} (${sender_email})`;
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("receiverEmail")) document.getElementById("receiverEmail").value = params.get("receiverEmail");
+        if (params.get("receiverType")) document.getElementById("receiverType").value = params.get("receiverType");
+
+        let linkedPackageId = params.get("packageId") || null;
+        let currentConversations = [];
+
+        async function loadLinkedPackage() {
+            if (!linkedPackageId) return;
+            const res = await fetch(`http://localhost:3000/packages/browse`);
+            const packages = await res.json();
+            const linkedPackage = packages.find(p => p.package_id == linkedPackageId);
+            if (linkedPackage) {
+                document.getElementById("linkedPackageBar").style.display = "flex";
+                document.getElementById("linkedPackageInfo").innerHTML = `
+                    <span class="linked-label">Discussing:</span>
+                    <strong>${linkedPackage.name}</strong>
+                    <span>$${linkedPackage.price} &middot; ${linkedPackage.photos_included} photos</span>
+                `;
+            }
+        }
+
+        loadLinkedPackage();
+
+        function getReceiverName(email) {
+            const c = currentConversations.find(x => x.other_email === email);
+            return c ? `${c.fname} ${c.lname}` : email;
+        }
+
+        async function loadConversations() {
+            const res = await fetch(`http://localhost:3000/conversations?email=${sender_email}&type=${sender_type}`);
+            if (!res.ok) return;
+            currentConversations = await res.json();
+
+            const list = document.getElementById("conversationsList");
+            const currentReceiver = document.getElementById("receiverEmail").value;
+            list.innerHTML = "";
+
+            if (currentConversations.length === 0) {
+                list.innerHTML = `<p class="no-conversations">No conversations yet.</p>`;
+                return;
+            }
+
+            currentConversations.forEach(c => {
+                const isActive = currentReceiver === c.other_email;
+                const displayName = `${c.fname} ${c.lname}`;
+                const item = document.createElement("div");
+                item.className = `conversation-item ${isActive ? "active" : ""}`;
+                item.innerHTML = `
+                    <div class="conversation-info">
+                        <span class="conversation-email">${displayName}</span>
+                        <span class="conversation-type">${c.other_type}</span>
+                    </div>
+                    <p class="conversation-preview">${c.last_message || ""}</p>
+                `;
+                item.addEventListener("click", () => {
+                    document.getElementById("receiverEmail").value = c.other_email;
+                    document.getElementById("receiverType").value = c.other_type;
+                    document.getElementById("chatTitle").textContent = `Chat with ${displayName}`;
+                    loadMessages();
+                    loadConversations();
+                });
+                list.appendChild(item);
+            });
+
+            if (currentReceiver) {
+                const name = getReceiverName(currentReceiver);
+                if (name !== currentReceiver) {
+                    document.getElementById("chatTitle").textContent = `Chat with ${name}`;
+                }
+            }
+        }
+
+        loadConversations();
+
+        document.getElementById("proposeBtn").addEventListener("click", () => {
+            const form = document.getElementById("proposalForm");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        });
+
+        document.getElementById("cancelProposalFormBtn").addEventListener("click", () => {
+            document.getElementById("proposalForm").style.display = "none";
+            document.getElementById("proposePrice").value = "";
+            document.getElementById("proposePhotos").value = "";
+            document.getElementById("proposeDate").value = "";
+        });
+
+        document.getElementById("sendProposalBtn").addEventListener("click", async () => {
+            const new_price = document.getElementById("proposePrice").value;
+            const new_photos = document.getElementById("proposePhotos").value;
+            const new_date = document.getElementById("proposeDate").value;
+            const receiver_email = document.getElementById("receiverEmail").value;
+            const receiver_type = document.getElementById("receiverType").value;
+
+            if (!new_price && !new_photos && !new_date) return alert("Enter at least one change to propose");
+            if (!receiver_email) return alert("Enter receiver email");
+            if (!linkedPackageId) return alert("No package linked to this conversation");
+
+            const conversation_key = [sender_type, sender_email, receiver_type, receiver_email].sort().join("|");
+
+            await fetch("http://localhost:3000/proposal/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    conversation_key,
+                    package_id: linkedPackageId,
+                    sender_email,
+                    sender_type,
+                    receiver_email,
+                    receiver_type,
+                    new_price: new_price || null,
+                    new_photos: new_photos || null,
+                    new_date: new_date || null
+                })
+            });
+
+            document.getElementById("proposalForm").style.display = "none";
+            document.getElementById("proposePrice").value = "";
+            document.getElementById("proposePhotos").value = "";
+            document.getElementById("proposeDate").value = "";
+            loadMessages();
+        });
+
+        document.getElementById("sendBtn").addEventListener("click", () => {
+            const message = document.getElementById("messageInput").value;
+            const receiver_type = document.getElementById("receiverType").value;
+            const receiver_email = document.getElementById("receiverEmail").value;
+
+            if (!message || !receiver_email) return alert("Enter a message and receiver email");
+
+            fetch('http://localhost:3000/send-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sender_type, sender_email, receiver_type, receiver_email, message })
+            }).then(res => res.text()).then(() => {
+                document.getElementById("messageInput").value = "";
+                loadMessages();
+                loadConversations();
+            });
+        });
+
+        async function loadMessages() {
+            const receiver_type = document.getElementById("receiverType").value;
+            const receiver_email = document.getElementById("receiverEmail").value;
+            if (!receiver_email) return;
+
+            const receiverName = getReceiverName(receiver_email);
+            const conversation_key = [sender_type, sender_email, receiver_type, receiver_email].sort().join("|");
+
+            const [msgRes, propRes] = await Promise.all([
+                fetch(`http://localhost:3000/get-messages?user1_type=${sender_type}&user1_email=${sender_email}&user2_type=${receiver_type}&user2_email=${receiver_email}`),
+                fetch(`http://localhost:3000/proposals?conversation_key=${encodeURIComponent(conversation_key)}`)
+            ]);
+
+            const messages = await msgRes.json();
+            const proposals = await propRes.json();
+
+            const combined = [
+                ...messages.map(m => ({ ...m, _type: 'message' })),
+                ...proposals.map(p => ({ ...p, _type: 'proposal' }))
+            ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+            const chatDiv = document.getElementById("chat");
+            chatDiv.innerHTML = "";
+
+            combined.forEach(item => {
+                if (item._type === 'message') {
+                    const p = document.createElement("p");
+                    const isMine = item.sender_email === sender_email;
+                    p.className = `chat-message ${isMine ? 'mine' : 'theirs'}`;
+                    p.innerHTML = `<span class="chat-meta">${isMine ? 'You' : receiverName}</span>${item.message}`;
+                    chatDiv.appendChild(p);
+                } else {
+                    const card = document.createElement("div");
+                    const isMine = item.sender_email === sender_email;
+                    const isPending = item.status === 'pending';
+                    const isReceiver = item.receiver_email === sender_email;
+
+                    card.className = `proposal-card proposal-${item.status}`;
+                    card.innerHTML = `
+                        <div class="proposal-card-header">
+                            <span class="proposal-label">📋 Package Proposal</span>
+                            <span class="proposal-status-badge status-${item.status}">${item.status}</span>
+                        </div>
+                        <div class="proposal-card-body">
+                            ${item.new_price ? `<p><strong>New Price:</strong> $${item.new_price}</p>` : ''}
+                            ${item.new_photos ? `<p><strong>New Photo Count:</strong> ${item.new_photos}</p>` : ''}
+                            ${item.new_date ? `<p><strong>New Date:</strong> ${new Date(item.new_date).toLocaleDateString()}</p>` : ''}
+                            <p class="proposal-from">From: ${isMine ? 'You' : receiverName}</p>
+                        </div>
+                        ${isPending && isReceiver ? `
+                        <div class="proposal-card-actions">
+                            <button class="accept-btn" data-id="${item.proposal_id}">Accept</button>
+                            <button class="reject-btn" data-id="${item.proposal_id}">Reject</button>
+                        </div>` : ''}
+                        ${isPending && isMine ? `
+                        <div class="proposal-card-actions">
+                            <button class="cancel-proposal-btn" data-id="${item.proposal_id}">Cancel Proposal</button>
+                        </div>` : ''}
+                    `;
+                    chatDiv.appendChild(card);
+                }
+            });
+
+            chatDiv.querySelectorAll(".accept-btn").forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    const res = await fetch(`http://localhost:3000/proposal/${btn.dataset.id}/accept`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: sender_email })
+                    });
+                    const msg = await res.text();
+                    alert(msg);
+                    loadMessages();
+                    loadLinkedPackage();
+                });
+            });
+
+            chatDiv.querySelectorAll(".reject-btn").forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    await fetch(`http://localhost:3000/proposal/${btn.dataset.id}/reject`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: sender_email })
+                    });
+                    loadMessages();
+                });
+            });
+
+            chatDiv.querySelectorAll(".cancel-proposal-btn").forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    await fetch(`http://localhost:3000/proposal/${btn.dataset.id}/cancel`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: sender_email })
+                    });
+                    loadMessages();
+                });
+            });
+
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        setInterval(loadMessages, 3000);
+        setInterval(loadConversations, 5000);
+        if (params.get("receiverEmail")) loadMessages();
+    </script>
+</body>
+</html>

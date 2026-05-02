@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-logo">
+            <a href="home_page.html" class="nav-logo-link">
+                <img src="logo.png" alt="Logo" class="logo-img">
+                <span class="logo-text">BookMyLens</span>
+            </a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="create_package.html">Package Builder</a></li>
+            <li><a href="browse_packages.html">Browse Packages</a></li>
+            <li><a href="chat.html">Messages</a></li>
+            <li id="nav-login"><a href="login.html">Login</a></li>
+            <li id="nav-username" style="display:none;"></li>
+            <li id="nav-logout" style="display:none;"><a href="#">Logout</a></li>
+            <li id="nav-signup-customer"><a href="customer_register.html">Customer Signup</a></li>
+            <li id="nav-signup-photographer"><a href="photographer_register.html">Photographer Signup</a></li>
+        </ul>
+    </nav>
+    <div class="login-page">
+        <div class="login-card">
+            <h1>Welcome Back</h1>
+            <p class="login-subtitle">Sign in to your BookMyLens account</p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Account Type</label>
+                    <select id="userType">
+                        <option value="customer">Customer</option>
+                        <option value="photographer">Photographer</option>
+                    </select>
+                </div>            
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="Email" reqired>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+
+            <p id="loginResponse"></p>
+            <p class="signup-switch">Don't have an account? <a href="customer_register.html">Customer Signup</a> 
+                or <a href="photographer_register.html">Photographer Signup</a></p>
+        </div>
+    </div>
+    <footer class="footer">
+        <p>©2026 BookMyLens. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const userType = document.getElementById("userType").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        fetch(`http://localhost:3000/${userType}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        }).then(res => res.text()).then(msg => {
+                if (msg.toLowerCase().includes("incorrect") || msg.toLowerCase().includes("not found")) {
+                    document.getElementById("loginResponse").textContent = msg;
+                } else {
+                    localStorage.setItem("userEmail", email);
+                    localStorage.setItem("userType", userType);
+                    const redirect = localStorage.getItem("redirect") || "home_page.html";
+                    localStorage.removeItem("redirect");
+                    window.location.href = redirect;
+                }
+            }).catch(err => {
+                console.error(err);
+                document.getElementById("loginResponse").textContent = "Server error. Try again.";
+            });
+        });
+    </script>
+    <script>
+        const loggedInEmail = localStorage.getItem("userEmail");
+        const loggedInType = localStorage.getItem("userType");
+        const loginLink = document.getElementById("nav-login");
+        const logoutBtn = document.getElementById("nav-logout");
+        const usernameDisplay = document.getElementById("nav-username");
+
+        if (loggedInEmail) {
+            loginLink.style.display = "none";
+            usernameDisplay.style.display = "contents";
+            logoutBtn.style.display = "inline";
+            usernameDisplay.textContent = `${loggedInEmail.split('@')[0]} (${loggedInType})`;
+            document.getElementById("nav-signup-customer").style.display = "none";
+            document.getElementById("nav-signup-photographer").style.display = "none";
+        }
+
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("userEmail");
+            localStorage.removeItem("userType");
+            window.location.href = "home_page.html";
+        });
+
+        // Highlight active nav link
+        document.querySelectorAll(".nav-links a").forEach(a => {
+            if (a.href === window.location.href) {
+                a.style.opacity = "1";
+                a.style.fontWeight = "700";
+            }
+        });
+    </script>
+</body>
+</html>

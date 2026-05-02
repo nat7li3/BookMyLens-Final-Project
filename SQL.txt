@@ -1,0 +1,108 @@
+CREATE DATABASE software_engineering;
+
+USE software_engineering;
+
+CREATE TABLE `customer` (
+    `fname` varchar(15) NOT NULL,
+    `lname` varchar(15) NOT NULL,
+    `bdate` date NOT NULL,
+    `address` varchar(50) NOT NULL,
+    `email` varchar(50) NOT NULL,
+    `password` varchar(255) NOT NULL,
+    PRIMARY KEY (`email`),
+    UNIQUE KEY `email_UNIQUE` (`email`)
+);
+
+CREATE TABLE `photographer` (
+    `fname` varchar(15) NOT NULL,
+    `lname` varchar(15) NOT NULL,
+    `address` varchar(50) NOT NULL,
+    `email` varchar(50) NOT NULL,
+    `password` varchar(255) NOT NULL,
+    `bussiness` varchar(50) NOT NULL,
+    PRIMARY KEY (`email`),
+    UNIQUE KEY `email_UNIQUE` (`email`)
+);
+
+CREATE TABLE `messages` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `sender_type` enum('customer','photographer') NOT NULL,
+    `sender_email` varchar(50) NOT NULL,
+    `receiver_type` enum('customer','photographer') NOT NULL,
+    `receiver_email` varchar(50) NOT NULL,
+    `message` text NOT NULL,
+    `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+);
+
+CREATE TABLE categories (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE locations (
+    location_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE packages (
+    package_id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(50) NOT NULL,
+    creator_type ENUM('customer', 'photographer') NOT NULL DEFAULT 'customer',
+    name VARCHAR(50) NOT NULL,
+    category_id INT NOT NULL,
+    price DECIMAL(7,2) NOT NULL CHECK (price >= 0),
+    photos_included INT NOT NULL CHECK (photos_included > 0),
+    location_id INT NOT NULL,
+    description TEXT NOT NULL,
+    people INT NOT NULL CHECK (people > 0),
+    status ENUM('open', 'taken') NOT NULL DEFAULT 'open',
+    scheduled_date DATE NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(category_id),
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
+);
+
+CREATE TABLE addons (
+    addon_id INT AUTO_INCREMENT PRIMARY KEY,
+    package_id INT NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    price DECIMAL(7,2) NOT NULL CHECK (price >= 0),
+    FOREIGN KEY (package_id) REFERENCES packages(package_id) ON DELETE CASCADE,
+    UNIQUE (package_id, name)
+);
+
+CREATE TABLE saved_packages (
+    save_id INT AUTO_INCREMENT PRIMARY KEY,
+    original_package_id INT NOT NULL,
+    email VARCHAR(50) NOT NULL,
+    creator_type ENUM('customer', 'photographer') NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    category_id INT NOT NULL,
+    price DECIMAL(7,2) NOT NULL CHECK (price >= 0),
+    photos_included INT NOT NULL CHECK (photos_included > 0),
+    location_id INT NOT NULL,
+    description TEXT NOT NULL,
+    people INT NOT NULL CHECK (people > 0),
+    status ENUM('open', 'taken') NOT NULL DEFAULT 'open',
+    FOREIGN KEY (category_id) REFERENCES categories(category_id),
+    FOREIGN KEY (location_id) REFERENCES locations(location_id)
+);
+
+CREATE TABLE proposals (
+    proposal_id INT AUTO_INCREMENT PRIMARY KEY,
+    conversation_key VARCHAR(255) NOT NULL,
+    package_id INT NOT NULL,
+    sender_email VARCHAR(50) NOT NULL,
+    sender_type ENUM('customer', 'photographer') NOT NULL,
+    receiver_email VARCHAR(50) NOT NULL,
+    receiver_type ENUM('customer', 'photographer') NOT NULL,
+    new_price DECIMAL(7,2),
+    new_photos INT,
+    new_date DATE,
+    status ENUM('pending', 'accepted', 'rejected', 'cancelled') NOT NULL DEFAULT 'pending',
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (package_id) REFERENCES packages(package_id) ON DELETE CASCADE
+);
+
+INSERT INTO categories (name) VALUES ('Portrait'), ('Lifestyle'), ('Fine Art');
+INSERT INTO locations (name) VALUES ('Studio'), ('Outdoor'), ('Custom');

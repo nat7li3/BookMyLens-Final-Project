@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>BookMyLens - Home Page</title>
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-logo">
+            <a href="home_page.html" class="nav-logo-link">
+                <img src="logo.png" alt="Logo" class="logo-img">
+                <span class="logo-text">BookMyLens</span>
+            </a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="create_package.html">Package Builder</a></li>
+            <li><a href="browse_packages.html">Browse Packages</a></li>
+            <li><a href="chat.html">Messages</a></li>
+            <li id="nav-login"><a href="login.html">Login</a></li>
+            <li id="nav-username" style="display:none;"></li>
+            <li id="nav-logout" style="display:none;"><a href="#">Logout</a></li>
+            <li id="nav-signup-customer"><a href="customer_register.html">Customer Signup</a></li>
+            <li id="nav-signup-photographer"><a href="photographer_register.html">Photographer Signup</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-body">
+            <h1 class="hero-title">Book Your Perfect Shot</h1>
+            <p class ="hero-subtitle">Find and book talented photographers for the moments that matter</p>
+            <a href="customer_register.html" class="hero-btn">Get Started</a>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <h2 class="how-it-works-title">How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <span class="step-num">01</span>
+                <h3>Create an Account</h3>
+                <p>Sign up as a <a href="customer_register.html">customer</a> or register as a <a href="photographer_register.html">photographer.</a></p>
+            </div>
+
+            <div class="step">
+                <span class="step-num">02</span>
+                <h3>Browse & Book</h3>
+                <p>Explore packages and book the perfect photography session for your moment.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-num">03</span>
+                <h3>Capture the Moment</h3>
+                <p>Show up and let the photographer work their magic. Your memories are in good hands.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>©2026 BookMyLens. All rights reserved.</p>
+    </footer>
+    <script>
+        const loggedInEmail = localStorage.getItem("userEmail");
+        const loggedInType = localStorage.getItem("userType");
+        const loginLink = document.getElementById("nav-login");
+        const logoutBtn = document.getElementById("nav-logout");
+        const usernameDisplay = document.getElementById("nav-username");
+
+        if (loggedInEmail) {
+            loginLink.style.display = "none";
+            usernameDisplay.style.display = "contents";
+            logoutBtn.style.display = "inline";
+            usernameDisplay.textContent = `${loggedInEmail.split('@')[0]} (${loggedInType})`;
+            document.getElementById("nav-signup-customer").style.display = "none";
+            document.getElementById("nav-signup-photographer").style.display = "none";
+        }
+
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("userEmail");
+            localStorage.removeItem("userType");
+            window.location.href = "home_page.html";
+        });
+
+        // Highlight active nav link
+        document.querySelectorAll(".nav-links a").forEach(a => {
+            if (a.href === window.location.href) {
+                a.style.opacity = "1";
+                a.style.fontWeight = "700";
+            }
+        });
+        if (loggedInEmail) {
+            loginLink.style.display = "none";
+            usernameDisplay.style.display = "contents";
+            logoutBtn.style.display = "inline";
+            usernameDisplay.textContent = `${loggedInEmail.split('@')[0]} (${loggedInType})`;
+            document.getElementById("nav-signup-customer").style.display = "none";
+            document.getElementById("nav-signup-photographer").style.display = "none";
+
+            // Change Get Started to package builder
+            const heroBtn = document.querySelector(".hero-btn");
+            if (heroBtn) heroBtn.href = "create_package.html";
+
+            // Gray out signup links
+            document.querySelectorAll('a[href="customer_register.html"], a[href="photographer_register.html"]').forEach(a => {
+                a.style.pointerEvents = "none";
+                a.style.opacity = "0.4";
+                a.style.cursor = "default";
+            });
+        }
+    </script>
+</body>
+</html>

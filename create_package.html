@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BookMyLens - Package Builder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-logo">
+            <a href="home_page.html" class="nav-logo-link">
+                <img src="logo.png" alt="Logo" class="logo-img">
+                <span class="logo-text">BookMyLens</span>
+            </a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="create_package.html">Package Builder</a></li>
+            <li><a href="browse_packages.html">Browse Packages</a></li>
+            <li><a href="chat.html">Messages</a></li>
+            <li id="nav-login"><a href="login.html">Login</a></li>
+            <li id="nav-username" style="display:none;"></li>
+            <li id="nav-logout" style="display:none;"><a href="#">Logout</a></li>
+            <li id="nav-signup-customer"><a href="customer_register.html">Customer Signup</a></li>
+            <li id="nav-signup-photographer"><a href="photographer_register.html">Photographer Signup</a></li>
+        </ul>
+    </nav>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal-overlay" style="display:none;">
+        <div class="modal-card">
+            <h2>Edit Package</h2>
+            <form id="editForm">
+                <div class="form-group">
+                    <label>Package Name</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="editCategory">
+                            <option>Portrait</option>
+                            <option>Lifestyle</option>
+                            <option>Fine Art</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Price ($)</label>
+                        <input type="number" id="editPrice" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Photos Included</label>
+                        <input type="number" id="editPhotos" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <select id="editLocation">
+                            <option>Studio</option>
+                            <option>Outdoor</option>
+                            <option>Custom</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="editDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Number of People</label>
+                    <input type="number" id="editPeople" min="1">
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="save-btn">Save Changes</button>
+                    <button type="button" class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="package-page">
+        <div class="package-form-card">
+            <h1>Create Package</h1>
+            <p class="package-subtitle">Design your photography session</p>
+
+            <form id="packageForm">
+                <div class="form-group">
+                    <label>Package Name</label>
+                    <input type="text" id="name" placeholder="e.g. Golden Hour Portrait" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="category" required>
+                            <option value="">Select</option>
+                            <option>Portrait</option>
+                            <option>Lifestyle</option>
+                            <option>Fine Art</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Price ($)</label>
+                        <input type="number" id="price" placeholder="150" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Photos Included</label>
+                        <input type="number" id="photos" placeholder="10" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <select id="location">
+                            <option>Studio</option>
+                            <option>Outdoor</option>
+                            <option>Custom</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="description" placeholder="Describe the session vibe..."></textarea>
+                </div>
+
+                <button type="submit">Create Package</button>
+
+                <div class="form-group">
+                    <label>Add-ons</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" value="20" class="addon" data-name="Extra Edits"> Extra Edits (+$20)</label>
+                        <label><input type="checkbox" value="30" class="addon" data-name="Premium Retouch"> Premium Retouch (+$30)</label>
+                        <label><input type="checkbox" value="50" class="addon" data-name="Rush Delivery"> Rush Delivery (+$50)</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Number of People</label>
+                    <input type="number" id="people" value="1" min="1">
+                </div>
+            </form>
+        </div>
+
+        <!-- Preview Card -->
+        <div class="package-preview-card">
+            <h2>Live Preview</h2>
+            <div id="previewContent">
+                <p>Your package will appear here...</p>
+            </div>
+        </div>
+
+        <!-- Saved Packages -->
+        <div class="saved-packages">
+            <h2>My Packages</h2>
+            <div id="savedList"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>©2026 BookMyLens. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        if (!localStorage.getItem("userEmail")) {
+            localStorage.setItem("redirect", "create_package.html");
+            window.location.href = "login.html";
+        }
+
+        const loggedInEmail = localStorage.getItem("userEmail");
+        const loggedInType = localStorage.getItem("userType");
+        const loginLink = document.getElementById("nav-login");
+        const logoutBtn = document.getElementById("nav-logout");
+        const usernameDisplay = document.getElementById("nav-username");
+
+        if (loggedInEmail) {
+            loginLink.style.display = "none";
+            usernameDisplay.style.display = "contents";
+            logoutBtn.style.display = "inline";
+            usernameDisplay.textContent = `${loggedInEmail.split('@')[0]} (${loggedInType})`;
+            document.getElementById("nav-signup-customer").style.display = "none";
+            document.getElementById("nav-signup-photographer").style.display = "none";
+        }
+
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("userEmail");
+            localStorage.removeItem("userType");
+            window.location.href = "home_page.html";
+        });
+
+        document.querySelectorAll(".nav-links a").forEach(a => {
+            if (a.href === window.location.href) {
+                a.style.opacity = "1";
+                a.style.fontWeight = "700";
+            }
+        });
+    </script>
+</body>
+</html>
